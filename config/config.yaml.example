@@ -1,0 +1,35 @@
+# ai-agent-console — main config
+# Copy to config/config.yaml and edit. The wizard (wizard.py, task #6) will
+# write this for you during install in most cases.
+
+# Human-readable name for this deployment. Shown in Telegram headers and role
+# prompts. Any string — e.g. "Alfred", "Jeeves", "Orchestrator".
+agent_name: "Agent"
+
+# AAC home — the install root (usually the repo root). Used by scripts that
+# need an absolute path. Leave as "auto" to let the wizard / tooling detect it
+# from the location of this file.
+aac_home: "auto"
+
+# License key for paid deployments. Verified via HMAC at startup (lib/license.py,
+# task #7). Leave empty during development.
+license_key: ""
+
+# Telegram notification credentials.
+#
+# IMPORTANT: lib/notify.py reads TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID from
+# .env.local by default. Values here are for documentation and wizard
+# management — the runtime prefers env vars.
+telegram:
+  bot_token: ""    # or set TELEGRAM_BOT_TOKEN in .env.local
+  chat_id:   ""    # or set TELEGRAM_CHAT_ID in .env.local
+
+# Emoji prefix per role for notify.send(role, message). Built-in defaults:
+# {System: ⚙️}. Unknown roles get 🤖. Extend / override here.
+notify:
+  role_emojis:
+    System:     "⚙️"
+    Researcher: "🔍"
+    Designer:   "🎨"
+    Watcher:    "📡"
+    Chat:       "💬"

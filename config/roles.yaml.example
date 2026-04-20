@@ -1,0 +1,41 @@
+# ai-agent-console — roles manifest
+# Describes which agents run, how often, and where.
+#
+# Consumed by:
+#   - bin/respawn_agent.sh   (tmux session launcher — shipped)
+#   - bin/watchdog.py        (liveness checks — task #2)
+#   - brain.py               (orchestrator — task #4)
+#
+# Copy to config/roles.yaml and edit.
+
+defaults:
+  # Prefix prepended to {id} when a role omits `session:`.
+  # e.g. id=researcher + prefix "agent-" → tmux session "agent-researcher".
+  session_prefix: "agent-"
+
+  # Root dir for per-role working directories. If a role omits `workdir:`, it
+  # becomes {workdirs_root}/{id}. Resolved relative to AAC_HOME.
+  workdirs_root: "workdirs"
+
+roles:
+  # Each role requires `id`. Everything else falls back to these defaults:
+  #   session     → {defaults.session_prefix}{id}
+  #   cadence     → "30m"              (passed to `/loop <cadence>`)
+  #   prompt_file → roles/{id}.md      (relative to AAC_HOME)
+  #   workdir     → {defaults.workdirs_root}/{id}
+
+  - id: researcher
+    cadence: "30m"
+
+  - id: designer
+    cadence: "1h"
+
+  - id: watcher
+    cadence: "15m"
+
+  - id: chat
+    cadence: "5m"
+    # Example overrides (uncomment to use):
+    # session: my-chat-daemon
+    # workdir: /var/data/chat-logs
+    # prompt_file: roles/chat_custom.md
