@@ -30,14 +30,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Tuple
 
-AAC_HOME = Path(os.getenv("AAC_HOME") or Path(__file__).resolve().parent.parent)
-sys.path.insert(0, str(AAC_HOME))
+# Skill dir: .claude/skills/agent-console/scripts/watchdog.py
+# parents: scripts → agent-console → skills → .claude → <PROJECT_ROOT>
+SKILL_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(os.getenv("AAC_HOME") or SKILL_DIR.parent.parent.parent)
+sys.path.insert(0, str(SKILL_DIR))
 
 from lib.config import load_roles  # noqa: E402
 from lib.notify import send  # noqa: E402
 
-STATE_FILE = AAC_HOME / "memory" / "watchdog_state.json"
-MEMORY_ROOT = AAC_HOME / "memory"
+STATE_FILE = PROJECT_ROOT / "agent" / "memory" / "watchdog_state.json"
+MEMORY_ROOT = PROJECT_ROOT / "agent" / "memory"
 
 
 def parse_cadence_minutes(cadence: str) -> int:
@@ -83,7 +86,7 @@ def _tmux(*args) -> subprocess.CompletedProcess:
 
 
 def _resolve_workdir(workdir: str) -> str:
-    return workdir if os.path.isabs(workdir) else str(AAC_HOME / workdir)
+    return workdir if os.path.isabs(workdir) else str(PROJECT_ROOT / workdir)
 
 
 def check_role(role: dict) -> Tuple[str, object]:

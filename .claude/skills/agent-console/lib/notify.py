@@ -21,14 +21,16 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(REPO_ROOT / ".env.local")
+# Skill dir: .claude/skills/agent-console/lib/notify.py
+# parents: lib → agent-console → skills → .claude → <PROJECT_ROOT>
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+load_dotenv(PROJECT_ROOT / ".env.local")
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 API = f"https://api.telegram.org/bot{TOKEN}"
-LOG_PATH = REPO_ROOT / "memory" / "notify.log"
-CONFIG_PATH = REPO_ROOT / "config" / "config.yaml"
+LOG_PATH = PROJECT_ROOT / "agent" / "memory" / "notify.log"
+CONFIG_PATH = PROJECT_ROOT / "agent" / "config" / "config.yaml"
 
 DEFAULT_ROLE_EMOJIS = {"System": "⚙️"}
 DEFAULT_FALLBACK_EMOJI = "🤖"

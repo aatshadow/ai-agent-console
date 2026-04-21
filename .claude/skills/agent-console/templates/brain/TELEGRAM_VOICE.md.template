@@ -1,0 +1,65 @@
+# Telegram Voice — reglas para los heartbeats de cada agente
+
+Toda llamada a `notify.send(role, summary)` en **{{BUSINESS_NAME}}** debe
+seguir estas reglas. Si un agente no las cumple, su output no sirve:
+{{USER_NAME}} no entiende nada.
+
+## Audiencia
+
+{{USER_NAME}} lee en el móvil, entre cosas. No está mirando los datos.
+Tu mensaje es sus ojos: en **10 segundos** tiene que saber **qué pasó** y
+**por qué le importa**.
+
+## Formato obligatorio
+
+- **Idioma**: {{LANGUAGE}}. Términos técnicos sin traducción natural pueden
+  quedarse en su idioma original si explicas en la misma frase qué significan.
+- **Largo**: 2 a 5 frases. Nunca muros de bullets. Nunca bloques de código.
+- **Estructura**:
+  1. Una frase: qué encontraste / qué decidiste / qué acaba de cambiar.
+  2. Una frase: por qué importa (señal, riesgo, oportunidad, falsa alarma).
+  3. Opcional: un número si es el titular (saldo, latencia, error rate,
+     volumen — lo que sea crítico en {{BUSINESS_NAME}}).
+  4. Opcional: qué vas a vigilar en el próximo ciclo.
+
+## PROHIBIDO
+
+- Jerga sin traducir ("N=22", "p95 +740ms", "confidence=0.83", códigos de
+  estado crudos) — salvo que también lo expliques en humano en la misma frase.
+- Timestamps crudos, cycle_ids, "cycle complete".
+- Listas de sub-agentes despachados — al operador no le interesa el cómo.
+- "Outputs written to latest.md and latest.json" — es obvio, es tu trabajo.
+- Repetir lo que ya dijiste el ciclo anterior. Si no hay novedad, dilo corto.
+
+## OBLIGATORIO
+
+- Empieza por **qué pasó**, no por metadatos.
+- Si no hay novedad: "sin cambios desde hace 1h" — breve, sin relleno.
+- Si algo se rompió: empieza con 🚨 y descríbelo en palabras llanas.
+- Si tienes una recomendación, dila en humano: "yo esperaría", "yo no me fiaría",
+  "yo lo lanzaría".
+
+## Ejemplo — MAL (ruido técnico)
+
+> 🔍 *[Analyst]* Analyst cycle 2026-04-20T03:56:09Z complete.
+> Mode: BATCH (N=2 samples). 5 subs dispatched: anomaly_hunter, trend_fuser,
+> regime_classifier, session_corr, contradiction. Flags: regime=steady
+> (24/24 cycles), confidence 0.83 rising.
+
+## Ejemplo — BIEN (narrativa humana)
+
+> 🔍 *[Analyst]* Llevamos 24 ciclos sin que cambie nada relevante en los datos
+> — todo sigue en rango. Ninguno de los cinco análisis de este ciclo detecta
+> desvío. Vigilo especialmente si la métrica principal baja del umbral que
+> marcamos ayer.
+
+## Ejemplo — BIEN, sin novedad
+
+> 📡 *[Watcher]* Nada nuevo desde el último ping. Todas las métricas dentro
+> de umbral, sin errores. Sigo mirando.
+
+## Ejemplo — BIEN, algo roto
+
+> 🚨 *[Extractor]* No puedo leer la fuente externa `source_X` — está devolviendo
+> 500 desde hace 20 minutos. El resto de fuentes sigue sana. ¿Pauso la rotación
+> de `source_X` hasta que vuelva, o espero un ciclo más?

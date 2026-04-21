@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# respawn_agent.sh — AI Agent Console primitive
+# spawn_agent.sh — agent-console skill primitive
 #
 # Usage:
-#   respawn_agent.sh <role> [cadence]   respawn (or spawn) one agent
-#   respawn_agent.sh --list             status of all known roles
-#   respawn_agent.sh --zombies          respawn every session NOT in its workdir
-#   respawn_agent.sh --dry-run <role>   show what would happen, don't touch tmux
+#   spawn_agent.sh <role> [cadence]   spawn (or respawn) one agent
+#   spawn_agent.sh --list             status of all known roles
+#   spawn_agent.sh --zombies          respawn every session NOT in its workdir
+#   spawn_agent.sh --dry-run <role>   show what would happen, don't touch tmux
 #
 # A "zombie" = tmux session whose cwd is not the role's configured workdir
 # (so it's typically locked out of its own scheduler / memory files).
 #
 # Roles, sessions, cadences, and workdirs come from:
-#   $AAC_HOME/config/roles.yaml       (override with $AAC_ROLES_CONFIG)
+#   $AAC_HOME/agent/config/roles.yaml   (override with $AAC_ROLES_CONFIG)
 #
-# $AAC_HOME is auto-detected as the parent of this script's directory
+# $AAC_HOME is the adopting project's root. Auto-detected as the four-parent
+# ancestor of this script (.claude/skills/agent-console/scripts/ → <PROJECT_ROOT>),
 # unless explicitly set in the environment.
 #
 # Skip roles in --zombies by listing their ids in $SAFE_SKIP (space-separated).
@@ -21,11 +22,12 @@
 set -euo pipefail
 
 if [[ -z "${AAC_HOME:-}" ]]; then
-  AAC_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  # scripts/ → agent-console/ → skills/ → .claude/ → <PROJECT_ROOT>
+  AAC_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 fi
 export AAC_HOME
 
-CONFIG_FILE="${AAC_ROLES_CONFIG:-$AAC_HOME/config/roles.yaml}"
+CONFIG_FILE="${AAC_ROLES_CONFIG:-$AAC_HOME/agent/config/roles.yaml}"
 SAFE_SKIP="${SAFE_SKIP-}"
 
 declare -A SESSIONS CADENCES PROMPTS WORKDIRS
@@ -89,7 +91,7 @@ no_roles_msg() {
 no roles configured yet
   expected: $CONFIG_FILE
   AAC_HOME: $AAC_HOME
-  copy config/roles.yaml.example to config/roles.yaml to get started
+  copy agent/config/roles.yaml.example to agent/config/roles.yaml to get started
   or set AAC_ROLES_CONFIG to point at a different file
 EOF
 }

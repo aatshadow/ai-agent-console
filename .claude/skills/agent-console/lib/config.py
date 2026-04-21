@@ -1,18 +1,23 @@
 """
-Config loaders for ai-agent-console.
+Config loaders for the agent-console skill.
 
-Two YAML files live under `config/`:
+Two YAML files live under `agent/config/`:
   - config.yaml   — agent_name, license_key, telegram creds, notify emojis
   - roles.yaml    — roles list + defaults (session_prefix, workdirs_root)
 
 The `load_roles()` function mirrors the resolution logic used by
-`bin/respawn_agent.sh` so Python callers see the same shape the shell script
+`scripts/spawn_agent.sh` so Python callers see the same shape the shell script
 sees. If fields fall out of sync, the shell script is the source of truth —
 update this loader to match it, not the other way around.
 
+Path resolution: this module lives at
+`.claude/skills/agent-console/lib/config.py` — five parents up is the
+adopting project's root (PROJECT_ROOT). Config lives under
+`<PROJECT_ROOT>/agent/config/`.
+
 Usage:
     from lib.config import load_config, load_roles
-    cfg = load_config()          # dict from config/config.yaml
+    cfg = load_config()          # dict from agent/config/config.yaml
     roles = load_roles()         # {"roles": [...resolved...], "defaults": {...}}
 """
 from pathlib import Path
@@ -20,9 +25,11 @@ from typing import Optional
 
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CONFIG_PATH = REPO_ROOT / "config" / "config.yaml"
-DEFAULT_ROLES_PATH = REPO_ROOT / "config" / "roles.yaml"
+# Skill dir: .claude/skills/agent-console/lib/config.py
+# parents: lib → agent-console → skills → .claude → <PROJECT_ROOT>
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+DEFAULT_CONFIG_PATH = PROJECT_ROOT / "agent" / "config" / "config.yaml"
+DEFAULT_ROLES_PATH = PROJECT_ROOT / "agent" / "config" / "roles.yaml"
 
 
 def load_config(path: Optional[str] = None) -> dict:
@@ -50,7 +57,7 @@ def load_roles(path: Optional[str] = None) -> dict:
 
     defaults = data.get("defaults") or {}
     prefix = defaults.get("session_prefix", "agent-")
-    workdirs_root = defaults.get("workdirs_root", "workdirs")
+    workdirs_root = defaults.get("workdirs_root", "agent/workdirs")
 
     resolved = []
     for r in data.get("roles") or []:
@@ -61,7 +68,7 @@ def load_roles(path: Optional[str] = None) -> dict:
             "id": rid,
             "session": r.get("session") or f"{prefix}{rid}",
             "cadence": r.get("cadence") or "30m",
-            "prompt_file": r.get("prompt_file") or f"roles/{rid}.md",
+            "prompt_file": r.get("prompt_file") or f"agent/roles/{rid}.md",
             "workdir": r.get("workdir") or f"{workdirs_root}/{rid}",
         })
     return {"roles": resolved, "defaults": defaults}
