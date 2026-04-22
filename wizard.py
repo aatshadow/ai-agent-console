@@ -25,6 +25,9 @@ AGENT_DIR = REPO_ROOT / "agent"
 TPL_BRAIN = REPO_ROOT / ".claude" / "skills" / "agent-console" / "templates" / "brain"
 ENV_FILE = REPO_ROOT / ".env.local"
 
+sys.path.insert(0, str(REPO_ROOT / ".claude" / "skills" / "agent-console" / "lib"))
+import license as lic  # noqa: E402
+
 DEFAULT_ROLES = ["researcher", "designer", "watcher", "analyst",
                  "extractor", "changewatcher", "taskmaster"]
 CADENCE_MAP = {"15min": 900, "30min": 1800, "60min": 3600}
@@ -102,6 +105,30 @@ def main() -> int:
     print("═══ ai-agent-console — wizard de onboarding ═══")
     print()
 
+    # ── step 0: license gate ───────────────────────────────────────────────
+    existing_key = ""
+    if ENV_FILE.exists():
+        for line in ENV_FILE.read_text().splitlines():
+            if line.startswith("LICENSE_KEY="):
+                existing_key = line.partition("=")[2].strip()
+                break
+    while True:
+        key = prompt("0. License key (AAC1-...)", existing_key)
+        if not key:
+            print("  → se necesita una key para continuar. Escríbenos a support@blackwolfsec.io si no tienes.")
+            continue
+        result = lic.verify(key)
+        if result.ok:
+            payload = result.payload or {}
+            exp = payload.get("expires_at") or "perpetua"
+            print(f"  [✓] key válida — {payload.get('email','?')} · tier={payload.get('tier','?')} · expira={exp}")
+            break
+        print(f"  [✗] key inválida: {result.reason}")
+        if result.reason.startswith("LICENSE_SECRET"):
+            # Running without the secret we cannot verify at all — abort loudly.
+            print("      El installer no trae el secret público para verificar keys. Reinstala desde el release oficial.")
+            return 2
+
     assistant     = prompt("1. Nombre del asistente", "Alfred")
     biz_name      = prompt("2. Nombre del negocio", "")
     biz_mission   = prompt("3. Misión del negocio (1 frase)", "")
@@ -145,6 +172,7 @@ def main() -> int:
     # ── .env.local ──────────────────────────────────────────────────────────
     print("\n→ escribiendo .env.local")
     write_env({
+        "LICENSE_KEY":         key,
         "ANTHROPIC_API_KEY":   anthropic_key,
         "TELEGRAM_BOT_TOKEN":  tg_token,
         "TELEGRAM_CHAT_ID":    tg_chat,
