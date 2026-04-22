@@ -30,6 +30,7 @@ Todas en `.claude/skills/agent-console/lib/`:
 - `lib.notify` — `send(role, message, silent=False)` → Telegram con emoji prefix por rol
 - `lib.bridge` — FastAPI app (`/api/alfred/ping|state|ask|push_event`) con auth `X-Peer-Token`
 - `lib.config` — `load_config()`, `load_roles()` — lee `config/config.yaml` y `config/roles.yaml`
+- `lib.license` — `verify(key)`, `require_valid(key)`, `gate_or_exit(key)` — HMAC offline, secret en `.env.local`
 
 Import desde el brain del negocio (importlib por path, o `sys.path.insert`):
 ```python
@@ -49,11 +50,11 @@ Outputs del ciclo a:
 - `agent/memory/<role>/hypotheses.md` — ideas acumuladas a validar
 
 ## Cómo añadir un rol nuevo
-1. Crea `agent/agents/<new_role>.md` con el prompt del loop (bloque ```delimitado```)
-2. Crea `agent/memory/<new_role>/` con `inbox.md` vacío
-3. Añade entrada en `config/roles.yaml` con `id: <new_role>` y `cadence: <Xm|Xh>`
-4. `scripts/spawn_agent.sh <new_role>`
-5. Añade el id a `agent/state.json.active_roles`
+**Conversacional (cuando Sir te lo pide en Telegram):** lee `CREATE_ROLE.md` (en esta misma skill) — es el guion de preguntas + el protocolo de mostrar el draft. No improvises.
+
+**Mecánico (tras confirmar con Sir):** `scripts/create_role.py --spec <json>` valida el spec, escribe `roles/<id>.md` con el fenced prompt block que `spawn_agent.sh` extrae, actualiza `agent/config/roles.yaml`, y scaffoldea `agent/memory/<id>/`. Valida: id slug, cadencia, contradicción obligatoria en steps, STEP 0 de continuidad.
+
+Después: `scripts/spawn_agent.sh <id>` para lanzar, y añadir el id a `agent/state.json.active_roles`.
 
 ## Bridge cross-VPS
 Si la VPS tiene Tailscale, `lib/bridge.py` expone endpoints para que otro Alfred (en otra VPS) consulte estado o pase mensajes:
