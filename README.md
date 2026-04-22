@@ -83,28 +83,41 @@ Comprar: *(landing en preparación)*
 | File | What it does |
 |------|-------------|
 | `install.sh` | One-command installer — clones, creates venv, runs wizard |
-| `wizard.py` | Interactive setup — license, Telegram, .env, roles |
-| `bin/respawn_agent.sh` | Spawn, kill, respawn, status. The primitive |
-| `bin/watchdog.py` | Every 5min, alerts on dead / zombie / stale agents |
-| `agent/brain.py` | Telegram-facing conversational agent with tool use |
-| `agent/notify.py` | Telegram send helper — every role uses this |
-| `agent/license.py` | Offline license key verification |
-| `agent/TELEGRAM_VOICE.md` | Canonical rules all agents follow for Telegram output |
-| `roles/templates/` | Role prompt templates you clone when adding agents |
+| `wizard.py` | Interactive setup — license gate, Telegram, `.env.local`, roles |
+| `.claude/skills/agent-console/SKILL.md` | Skill manifest the brain reads to know how to orchestrate |
+| `.../scripts/spawn_agent.sh` | Spawn / respawn / list / zombie-sweep the tmux sessions |
+| `.../scripts/kill_agent.sh` | Stop a role |
+| `.../scripts/watchdog.py` | Detect dead / zombie / stale / pristine agents, notify on state change |
+| `.../scripts/create_role.py` | Materialize a new role from a JSON spec (validates, writes doc + config + memory) |
+| `.../CREATE_ROLE.md` | Conversational protocol the brain follows when Sir asks for a new role |
+| `.../lib/notify.py` | Telegram send helper — every role imports this |
+| `.../lib/taskmaster.py` | Shared append-only task board across operator + all agents |
+| `.../lib/license.py` | Offline HMAC license verification |
+| `.../lib/bridge.py` | FastAPI bridge for cross-VPS Alfred-to-Alfred calls |
+| `.../templates/brain/TELEGRAM_VOICE.md.template` | Canonical Telegram voice rules rendered into `agent/` |
+| `.../templates/roles/*.md` | Role blueprints (researcher, designer, watcher, analyst, extractor, changewatcher) |
+| `tools/issue_key.py` | Mint / verify license keys (needs `LICENSE_SECRET`) |
 
 ## Status
 
-**🚧 Currently being extracted from a parent project.** The design is battle-tested on a live 9-agent crypto-trading stack that has been running for weeks. This repo is the clean generic version.
+**Core shipped.** Design battle-tested on a live 9-agent crypto-trading stack (`/opt/wolftrader`) running for weeks. The extraction is usable today on a fresh VPS.
 
-Extraction TODO:
+Done:
 
-- [ ] Strip all trading-specific code (only the orchestration pattern)
-- [ ] Write `install.sh`
-- [ ] Write `wizard.py` with Telegram bootstrap + .env editor
-- [ ] Write `agent/license.py` with HMAC-signed key verification
-- [ ] Generic role templates (Researcher, Designer, Watcher, Chat — no trading)
-- [ ] Whop integration for automatic key issuance on purchase
-- [ ] Landing page + copy
+- [x] Repackaged as a Claude Code skill (`.claude/skills/agent-console/`)
+- [x] `install.sh` + `wizard.py` (stdlib only, license gate as step 0)
+- [x] Skill libs: `taskmaster`, `journal`, `db`, `notify`, `bridge`, `config`, `license`
+- [x] Skill scripts: `spawn_agent.sh`, `kill_agent.sh`, `list_agents.sh`, `watchdog.py`, `create_role.py`
+- [x] Role templates: researcher, designer, watcher, analyst, extractor, changewatcher
+- [x] Brain templates: SOUL, VOICE, BRAIN, TELEGRAM_VOICE
+- [x] Cross-VPS bridge (FastAPI, `X-Peer-Token`, CORS to Tailscale `100.64.0.0/10`)
+- [x] Conversational role-creation flow (`CREATE_ROLE.md` guides the brain; `create_role.py` materializes)
+- [x] Offline HMAC license verification + `tools/issue_key.py` keygen
+
+Remaining:
+
+- [ ] Whop webhook to auto-issue keys on purchase (today: manual via `tools/issue_key.py`)
+- [ ] Landing page + sales copy
 - [ ] Demo video
 
 ## License
